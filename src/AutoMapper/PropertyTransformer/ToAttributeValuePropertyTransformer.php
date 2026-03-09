@@ -7,7 +7,9 @@ use AsyncAws\DynamoDb\ValueObject\AttributeValue;
 use AutoMapper\Metadata\MapperMetadata;
 use AutoMapper\Metadata\SourcePropertyMetadata;
 use AutoMapper\Metadata\TargetPropertyMetadata;
+use BackedEnum;
 use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
+use Symfony\Component\TypeInfo\Type\BackedEnumType;
 use Symfony\Component\TypeInfo\TypeIdentifier;
 
 final readonly class ToAttributeValuePropertyTransformer extends AbstractAttributeValuePropertyTransformer
@@ -17,8 +19,10 @@ final readonly class ToAttributeValuePropertyTransformer extends AbstractAttribu
         TargetPropertyMetadata $target,
         MapperMetadata $mapperMetadata
     ): mixed {
+        $sourceType = $source->type instanceof BackedEnumType ? $source->type->getBackingType() : $source->type;
+
         foreach (self::BUILT_IN_MAPPING as $type => $mapping) {
-            if ($source->type?->isIdentifiedBy($type) ?? false) {
+            if ($sourceType?->isIdentifiedBy($type) ?? false) {
                 return $mapping;
             }
         }
@@ -43,6 +47,10 @@ final readonly class ToAttributeValuePropertyTransformer extends AbstractAttribu
 
         if (\is_array($value)) {
             $value = \json_encode($value);
+        }
+
+        if ($value instanceof BackedEnum) {
+            $value = $value->value;
         }
 
         return AttributeValue::create([$computed => $value]);

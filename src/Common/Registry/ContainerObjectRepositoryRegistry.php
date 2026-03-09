@@ -14,6 +14,11 @@ final readonly class ContainerObjectRepositoryRegistry implements ObjectReposito
     ) {
     }
 
+    public function has(string $class): bool
+    {
+        return $this->repositories->has($class);
+    }
+
     public function get(string $class): ObjectRepositoryInterface
     {
         if ($this->repositories->has($class)) {

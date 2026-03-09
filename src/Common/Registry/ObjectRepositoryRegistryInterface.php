@@ -10,5 +10,10 @@ interface ObjectRepositoryRegistryInterface
     /**
      * @phpstan-param class-string $class
      */
+    public function has(string $class): bool;
+
+    /**
+     * @phpstan-param class-string $class
+     */
     public function get(string $class): ObjectRepositoryInterface;
 }

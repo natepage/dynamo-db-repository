@@ -13,6 +13,11 @@ final readonly class ArrayObjectRepositoryRegistry implements ObjectRepositoryRe
     ) {
     }
 
+    public function has(string $class): bool
+    {
+        return isset($this->repositories[$class]);
+    }
+
     public function get(string $class): ObjectRepositoryInterface
     {
         if (isset($this->repositories[$class])) {

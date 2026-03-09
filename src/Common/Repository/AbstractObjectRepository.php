@@ -36,14 +36,14 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
 
     public function delete(object $object): object
     {
-        $this->doDelete($this->getPrimaryKeyName(), $this->getPrimaryKeyValue($object));
+        $this->doDelete(static::getPrimaryKeyName(), $this->getPrimaryKeyValue($object));
 
         return $object;
     }
 
     public function find(string $id): ?object
     {
-        return $this->doFind($this->getPrimaryKeyName(), $id);
+        return $this->doFind(static::getPrimaryKeyName(), $id);
     }
 
     public function findAll(): iterable
@@ -61,7 +61,7 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
     {
         $this->doOptimisticPutWithRetries(
             $object,
-            $this->getPrimaryKeyName(),
+            static::getPrimaryKeyName(),
             $this->getOptimisticPutObjectReset(),
             $this->getOptimisticPutMaxAttempts()
         );
@@ -83,7 +83,7 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
 
     abstract public static function getObjectClass(): string;
 
-    abstract protected function getPrimaryKeyName(): string;
+    abstract public static function getPrimaryKeyName(): string;
 
     abstract protected function getPrimaryKeyValue(object $object): string;
 

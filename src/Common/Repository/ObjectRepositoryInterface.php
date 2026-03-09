@@ -17,6 +17,8 @@ interface ObjectRepositoryInterface
      */
     public static function getObjectClass(): string;
 
+    public static function getPrimaryKeyName(): string;
+
     /**
      * @phpstan-param T $object
      *

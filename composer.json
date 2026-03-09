@@ -9,6 +9,7 @@
         "natepage/utils": "dev-main"
     },
     "require-dev": {
+        "doctrine/orm": "^3.6",
         "jolicode/automapper": "^10.0"
     },
     "autoload": {

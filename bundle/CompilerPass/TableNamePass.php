@@ -17,8 +17,8 @@ final readonly class TableNamePass implements CompilerPassInterface
             $tablePrefix = null;
 
             foreach ($tags as $tag) {
-                $tableName = $tag['table_name'] ?? null;
-                $tablePrefix = $tag['table_prefix'] ?? null;
+                $tableName = $tag['table_name'] ?? $tableName;
+                $tablePrefix = $tag['table_prefix'] ?? $tablePrefix;
             }
 
             // Default to config values if not set in tag

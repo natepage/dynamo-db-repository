@@ -1,0 +1,14 @@
+<?php
+declare(strict_types=1);
+
+use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
+
+return static function (DefinitionConfigurator $definition) {
+    $definition->rootNode()
+        ->children()
+            ->arrayNode('auto_mapper')
+                ->canBeEnabled()
+            ->end()
+            ->scalarNode('table_prefix')->defaultNull()->end()
+        ->end();
+};

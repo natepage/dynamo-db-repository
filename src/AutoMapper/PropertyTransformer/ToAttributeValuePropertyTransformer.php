@@ -28,7 +28,7 @@ final class ToAttributeValuePropertyTransformer extends AbstractAttributeValuePr
         }
 
         $value = match (true) {
-            \is_string($value) => \json_encode($value),
+            \is_array($value) => \json_encode($value),
             $value instanceof BackedEnum => $value->value,
             $value instanceof DateTimeInterface => $value->format($this->dateTimeFormat),
             default => $value,

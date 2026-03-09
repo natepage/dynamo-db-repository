@@ -245,7 +245,7 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
     protected function transformToObject(array $item, ?array $context = null): ?object
     {
         // Extension point for repositories that want a simple transform without needing to implement the full interface
-        return $this->itemObjectTransformer?->toObject(self::getObjectClass(), $item, $context);
+        return $this->itemObjectTransformer?->toObject(static::getObjectClass(), $item, $context);
     }
 
     private function defineTableName(): string
@@ -254,7 +254,7 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
             return $this->tableName;
         }
 
-        return $this->tableName = $this->tableNamingStrategy->classToTableName(self::getObjectClass());
+        return $this->tableName = $this->tableNamingStrategy->classToTableName(static::getObjectClass());
     }
 
     private function resolveLastEvaluateKey(QueryOutput|ScanOutput $output): QueryOutput|ScanOutput

@@ -8,45 +8,20 @@ use AutoMapper\Metadata\MapperMetadata;
 use AutoMapper\Metadata\SourcePropertyMetadata;
 use AutoMapper\Metadata\TargetPropertyMetadata;
 use BackedEnum;
+use DateTimeInterface;
 use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
 use NatePage\Utils\Helper\StringHelper;
 use Symfony\Component\TypeInfo\Type\BackedEnumType;
+use Symfony\Component\TypeInfo\Type\ObjectType;
 use Symfony\Component\TypeInfo\TypeIdentifier;
 
-final readonly class FromAttributeValuePropertyTransformer extends AbstractAttributeValuePropertyTransformer
+final class FromAttributeValuePropertyTransformer extends AbstractAttributeValuePropertyTransformer
 {
     private const string ARRAY_AS_JSON_STRING_COMPUTED = 'array_as_json_string';
 
     private const string BACKED_ENUM_PREFIX_COMPUTED = 'backed_enum,';
 
-    public function compute(
-        SourcePropertyMetadata $source,
-        TargetPropertyMetadata $target,
-        MapperMetadata $mapperMetadata
-    ): mixed {
-        $targetType = $target->type instanceof BackedEnumType ? $target->type->getBackingType() : $target->type;
-
-        foreach (self::BUILT_IN_MAPPING as $type => $mapping) {
-            if ($targetType?->isIdentifiedBy($type) ?? false) {
-                if ($target->type instanceof BackedEnumType) {
-                    return \sprintf(
-                        '%s%s,%s',
-                        self::BACKED_ENUM_PREFIX_COMPUTED,
-                        $target->type->getClassName(),
-                        $mapping
-                    );
-                }
-
-                return $mapping;
-            }
-        }
-
-        if ($this->arrayAsJsonString && ($target->type?->isIdentifiedBy(TypeIdentifier::ARRAY) ?? false)) {
-            return self::ARRAY_AS_JSON_STRING_COMPUTED;
-        }
-
-        return null;
-    }
+    private const string DATETIME_PREFIX_COMPUTED = 'datetime,';
 
     public function transform(mixed $value, object|array $source, array $context, mixed $computed = null): mixed
     {
@@ -60,6 +35,7 @@ final readonly class FromAttributeValuePropertyTransformer extends AbstractAttri
             return null;
         }
 
+        // Array as JSON string
         if ($computed === self::ARRAY_AS_JSON_STRING_COMPUTED
             && StringHelper::isNotEmpty($value->getS())
             && \json_validate($value->getS())) {
@@ -68,14 +44,23 @@ final readonly class FromAttributeValuePropertyTransformer extends AbstractAttri
 
         $attributeValueBody = $value->requestBody();
 
+        // BackedEnum
         if (\str_starts_with($computed, self::BACKED_ENUM_PREFIX_COMPUTED)) {
             $computed = \substr($computed, \strlen(self::BACKED_ENUM_PREFIX_COMPUTED));
 
             // enumClassName,mapping
             [$enumClass, $mapping] = \explode(',', $computed);
 
-            /** @var BackedEnum $enumClass */
+            /** @var class-string<BackedEnum> $enumClass */
             return $enumClass::tryFrom($attributeValueBody[$mapping] ?? null);
+        }
+
+        // Datetime
+        if (\str_starts_with($computed, self::DATETIME_PREFIX_COMPUTED)) {
+            $datetimeClass = \substr($computed, \strlen(self::DATETIME_PREFIX_COMPUTED));
+
+            /** @var class-string<DateTimeInterface> $datetimeClass */
+            return $datetimeClass::createFromFormat($this->dateTimeFormat, $attributeValueBody[self::MAPPING_STRING]);
         }
 
         return $attributeValueBody[$computed] ?? null;
@@ -87,5 +72,32 @@ final readonly class FromAttributeValuePropertyTransformer extends AbstractAttri
         MapperMetadata $mapperMetadata
     ): bool {
         return $mapperMetadata->source === 'array';
+    }
+
+    protected function doCompute(
+        SourcePropertyMetadata $source,
+        TargetPropertyMetadata $target,
+        MapperMetadata $mapperMetadata
+    ): ?string {
+        $targetType = $this->resolveWrappedType($target->type);
+
+        if ($this->arrayAsJsonString && ($targetType?->isIdentifiedBy(TypeIdentifier::ARRAY) ?? false)) {
+            return self::ARRAY_AS_JSON_STRING_COMPUTED;
+        }
+
+        if ($targetType instanceof BackedEnumType) {
+            $mapping = $this->resolveBuiltInMapping($this->resolveWrappedType($targetType->getBackingType()));
+
+            if (StringHelper::isNotEmpty($mapping)) {
+                return self::BACKED_ENUM_PREFIX_COMPUTED . $targetType->getClassName() . ',' . $mapping;
+            }
+        }
+
+        if ($targetType instanceof ObjectType
+            && \is_a($targetType->getClassName(), DateTimeInterface::class, true)) {
+            return self::DATETIME_PREFIX_COMPUTED . $targetType->getClassName();
+        }
+
+        return $this->resolveBuiltInMapping($targetType);
     }
 }

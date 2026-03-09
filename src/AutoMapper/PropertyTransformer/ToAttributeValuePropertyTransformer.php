@@ -8,32 +8,14 @@ use AutoMapper\Metadata\MapperMetadata;
 use AutoMapper\Metadata\SourcePropertyMetadata;
 use AutoMapper\Metadata\TargetPropertyMetadata;
 use BackedEnum;
+use DateTimeInterface;
 use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
 use Symfony\Component\TypeInfo\Type\BackedEnumType;
+use Symfony\Component\TypeInfo\Type\ObjectType;
 use Symfony\Component\TypeInfo\TypeIdentifier;
 
-final readonly class ToAttributeValuePropertyTransformer extends AbstractAttributeValuePropertyTransformer
+final class ToAttributeValuePropertyTransformer extends AbstractAttributeValuePropertyTransformer
 {
-    public function compute(
-        SourcePropertyMetadata $source,
-        TargetPropertyMetadata $target,
-        MapperMetadata $mapperMetadata
-    ): mixed {
-        $sourceType = $source->type instanceof BackedEnumType ? $source->type->getBackingType() : $source->type;
-
-        foreach (self::BUILT_IN_MAPPING as $type => $mapping) {
-            if ($sourceType?->isIdentifiedBy($type) ?? false) {
-                return $mapping;
-            }
-        }
-
-        if ($this->arrayAsJsonString && ($source->type?->isIdentifiedBy(TypeIdentifier::ARRAY) ?? false)) {
-            return 'S';
-        }
-
-        return null;
-    }
-
     public function transform(mixed $value, object|array $source, array $context, mixed $computed = null): mixed
     {
         if (isset($context[AutoMapperItemObjectTransformer::CONTEXT_KEY]) === false || $computed === null) {
@@ -45,13 +27,12 @@ final readonly class ToAttributeValuePropertyTransformer extends AbstractAttribu
             return AttributeValue::create(['NULL' => true]);
         }
 
-        if (\is_array($value)) {
-            $value = \json_encode($value);
-        }
-
-        if ($value instanceof BackedEnum) {
-            $value = $value->value;
-        }
+        $value = match (true) {
+            \is_string($value) => \json_encode($value),
+            $value instanceof BackedEnum => $value->value,
+            $value instanceof DateTimeInterface => $value->format($this->dateTimeFormat),
+            default => $value,
+        };
 
         return AttributeValue::create([$computed => $value]);
     }
@@ -62,5 +43,28 @@ final readonly class ToAttributeValuePropertyTransformer extends AbstractAttribu
         MapperMetadata $mapperMetadata
     ): bool {
         return $mapperMetadata->target === 'array';
+    }
+
+    protected function doCompute(
+        SourcePropertyMetadata $source,
+        TargetPropertyMetadata $target,
+        MapperMetadata $mapperMetadata
+    ): ?string {
+        $sourceType = $this->resolveWrappedType($source->type);
+
+        if ($sourceType instanceof BackedEnumType) {
+            $sourceType = $this->resolveWrappedType($sourceType->getBackingType());
+        }
+
+        if ($this->arrayAsJsonString && ($sourceType?->isIdentifiedBy(TypeIdentifier::ARRAY) ?? false)) {
+            return self::MAPPING_STRING;
+        }
+
+        if ($sourceType instanceof ObjectType
+            && \is_a($sourceType->getClassName(), DateTimeInterface::class, true)) {
+            return self::MAPPING_STRING;
+        }
+
+        return $this->resolveBuiltInMapping($sourceType);
     }
 }

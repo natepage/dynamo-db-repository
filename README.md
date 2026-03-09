@@ -10,5 +10,5 @@ A simple repository abstraction for AWS DynamoDB
     - Look at https://github.com/jolicode/automapper
 - [X] Implement package specific exceptions
 - [X] Implement a registry to get repository instances by class name
-- [ ] Implement Symfony bundle
+- [X] Implement Symfony bundle
 - [ ] Implement Doctrine bridge to seamlessly use the repository with Doctrine entities

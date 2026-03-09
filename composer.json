@@ -6,7 +6,7 @@
     "require": {
         "php": "^8.4",
         "async-aws/dynamo-db": "^3.10",
-        "natepage/utils": "^1.0"
+        "natepage/utils": "dev-main"
     },
     "require-dev": {
         "jolicode/automapper": "^10.0"

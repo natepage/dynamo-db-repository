@@ -47,6 +47,12 @@ final class DynamoDbRepositoryBundle extends AbstractBundle
         $container->import('config/services.php');
 
         if ($config['auto_mapper']['enabled'] ?? false) {
+            $container
+                ->parameters()
+                ->set(ConfigParam::AutoMapperArrayAsJsonString->value, $config['auto_mapper']['array_as_json_string'])
+                ->set(ConfigParam::AutoMapperDatetimeClass->value, $config['auto_mapper']['datetime_class'])
+                ->set(ConfigParam::AutoMapperDatetimeFormat->value, $config['auto_mapper']['datetime_format']);
+
             $container->import('config/auto_mapper.php');
         }
     }

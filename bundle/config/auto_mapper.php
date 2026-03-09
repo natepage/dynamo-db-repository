@@ -6,6 +6,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 use NatePage\DynamoDbRepository\AutoMapper\PropertyTransformer\FromAttributeValuePropertyTransformer;
 use NatePage\DynamoDbRepository\AutoMapper\PropertyTransformer\ToAttributeValuePropertyTransformer;
 use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
+use NatePage\DynamoDbRepository\Bundle\Enum\ConfigParam;
 use NatePage\DynamoDbRepository\Bundle\Enum\ConfigServiceId;
 
 return static function (ContainerConfigurator $containerConfigurator): void {
@@ -13,7 +14,10 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->defaults()
         ->autowire()
-        ->autoconfigure();
+        ->autoconfigure()
+        ->bind('bool $arrayAsJsonString', param(ConfigParam::AutoMapperArrayAsJsonString->value))
+        ->bind('string $dateTimeClass', param(ConfigParam::AutoMapperDatetimeClass->value))
+        ->bind('string $dateTimeFormat', param(ConfigParam::AutoMapperDatetimeFormat->value));
 
     // Property transformers
     $services

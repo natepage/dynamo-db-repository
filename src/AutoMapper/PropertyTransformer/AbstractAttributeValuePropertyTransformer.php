@@ -7,6 +7,8 @@ use AutoMapper\Metadata\MapperMetadata;
 use AutoMapper\Metadata\SourcePropertyMetadata;
 use AutoMapper\Metadata\TargetPropertyMetadata;
 use AutoMapper\Transformer\PropertyTransformer\PropertyTransformerComputeInterface;
+use DateTimeImmutable;
+use DateTimeInterface;
 use NatePage\Utils\Helper\StringHelper;
 use Symfony\Component\TypeInfo\Type;
 use Symfony\Component\TypeInfo\Type\WrappingTypeInterface;
@@ -25,7 +27,8 @@ abstract class AbstractAttributeValuePropertyTransformer implements PropertyTran
 
     public function __construct(
         protected bool $arrayAsJsonString = true,
-        protected string $dateTimeFormat = 'Y:m:d H:i:s',
+        protected string $dateTimeClass = DateTimeImmutable::class,
+        protected string $dateTimeFormat = DateTimeInterface::ATOM,
     ) {
     }
 

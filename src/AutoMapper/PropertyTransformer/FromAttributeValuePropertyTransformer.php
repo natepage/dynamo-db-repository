@@ -59,6 +59,11 @@ final class FromAttributeValuePropertyTransformer extends AbstractAttributeValue
         if (\str_starts_with($computed, self::DATETIME_PREFIX_COMPUTED)) {
             $datetimeClass = \substr($computed, \strlen(self::DATETIME_PREFIX_COMPUTED));
 
+            // If the target type is the interface itself, use a concrete class instead (e.g. DateTimeImmutable)
+            if ($datetimeClass === DateTimeInterface::class) {
+                $datetimeClass = $this->dateTimeClass;
+            }
+
             /** @var class-string<DateTimeInterface> $datetimeClass */
             return $datetimeClass::createFromFormat($this->dateTimeFormat, $attributeValueBody[self::MAPPING_STRING]);
         }

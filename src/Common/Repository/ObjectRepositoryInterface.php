@@ -8,7 +8,7 @@ namespace NatePage\DynamoDbRepository\Common\Repository;
  */
 interface ObjectRepositoryInterface
 {
-    public ?string $lastEvaluatedKey = null {
+    public ?string $lastEvaluatedKey {
         get;
     }
 

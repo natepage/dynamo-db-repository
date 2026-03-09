@@ -17,9 +17,15 @@ final readonly class DynamoDbClientPass implements CompilerPassInterface
             return;
         }
 
-        foreach (\array_keys($container->findTaggedServiceIds(ConfigTag::ObjectRepository->value)) as $id) {
+        foreach ($container->findTaggedServiceIds(ConfigTag::ObjectRepository->value) as $id => $tags) {
+            $clientId = ConfigServiceId::DynamoDbClient->value;
+
+            foreach ($tags as $tag) {
+                $clientId = $tag['client'] ?? $clientId;
+            }
+
             $definition = $container->getDefinition($id);
-            $definition->setArgument('$dynamoDbClient', new Reference(ConfigServiceId::DynamoDbClient->value));
+            $definition->setArgument('$dynamoDbClient', new Reference($clientId));
         }
     }
 }

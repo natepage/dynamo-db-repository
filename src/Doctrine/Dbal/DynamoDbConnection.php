@@ -22,4 +22,14 @@ final class DynamoDbConnection extends Connection
     {
         // DynamoDB does not support transactions, so this method is a no-op.
     }
+
+    public function isTransactionActive(): bool
+    {
+        return false;
+    }
+
+    public function rollBack(): void
+    {
+        // DynamoDB does not support transactions, so this method is a no-op.
+    }
 }

@@ -25,6 +25,11 @@ final class EntityRepository extends BaseEntityRepository
             return null;
         }
 
-        return $this->repository->find($id);
+        $entity = $this->repository->find($id);
+        if ($entity != null) {
+            $this->getEntityManager()->getUnitOfWork()->registerManaged($entity, $id, []);
+        }
+
+        return $entity;
     }
 }

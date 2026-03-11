@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace NatePage\DynamoDbRepository\Doctrine\Manager;
 
 use DateTimeInterface;
-use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\Cache;
@@ -15,7 +14,6 @@ use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\FilterCollection;
 use Doctrine\ORM\Query\ResultSetMapping;
-use Doctrine\ORM\UnitOfWork;
 
 trait EntityManagerNotImplementedMethodsTrait
 {
@@ -79,19 +77,9 @@ trait EntityManagerNotImplementedMethodsTrait
         // TODO: Implement getReference() method.
     }
 
-    public function close(): void
-    {
-        // TODO: Implement close() method.
-    }
-
     public function lock(object $entity, int|LockMode $lockMode, DateTimeInterface|int|null $lockVersion = null): void
     {
         // TODO: Implement lock() method.
-    }
-
-    public function getUnitOfWork(): UnitOfWork
-    {
-        // TODO: Implement getUnitOfWork() method.
     }
 
     public function newHydrator(int|string $hydrationMode): AbstractHydrator
@@ -119,11 +107,6 @@ trait EntityManagerNotImplementedMethodsTrait
         // TODO: Implement hasFilters() method.
     }
 
-    public function persist(object $object): void
-    {
-        // TODO: Implement persist() method.
-    }
-
     public function remove(object $object): void
     {
         // TODO: Implement remove() method.
@@ -137,11 +120,6 @@ trait EntityManagerNotImplementedMethodsTrait
     public function detach(object $object): void
     {
         // TODO: Implement detach() method.
-    }
-
-    public function flush(): void
-    {
-        // TODO: Implement flush() method.
     }
 
     public function initializeObject(object $obj): void

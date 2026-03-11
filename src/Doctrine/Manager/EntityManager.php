@@ -7,12 +7,16 @@ use Doctrine\Common\EventManager;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository as DoctrineEntityRepository;
+use Doctrine\ORM\Exception\EntityManagerClosed;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\UnitOfWork as DoctrineUnitOfWork;
+use Exception;
 use NatePage\DynamoDbRepository\Common\Registry\ObjectRepositoryRegistryInterface;
 use NatePage\DynamoDbRepository\Doctrine\Repository\EntityRepository;
+use NatePage\DynamoDbRepository\Doctrine\UnitOfWork\UnitOfWork;
 use Psr\Log\LoggerInterface;
 
 final class EntityManager implements EntityManagerInterface
@@ -23,6 +27,10 @@ final class EntityManager implements EntityManagerInterface
 
     private ?EventManager $eventManager = null;
 
+    private ?UnitOfWork $unitOfWork = null;
+
+    private bool $isClosed = false;
+
     public function __construct(
         private readonly ObjectRepositoryRegistryInterface $objectRepositoryRegistry,
         private ?Configuration $configuration = null,
@@ -30,9 +38,23 @@ final class EntityManager implements EntityManagerInterface
     ) {
     }
 
+    public function close(): void
+    {
+        $this->isClosed = true;
+    }
+
     public function createQueryBuilder(): QueryBuilder
     {
         return new QueryBuilder($this);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function flush(): void
+    {
+        $this->errorIfClosed();
+        $this->getUnitOfWork()->commit();
     }
 
     public function getClassMetadata(string $className): ClassMetadata
@@ -96,8 +118,26 @@ final class EntityManager implements EntityManagerInterface
         return new EntityRepository($repository, $this, $this->getClassMetadata($className));
     }
 
+    public function getUnitOfWork(): DoctrineUnitOfWork
+    {
+        return $this->unitOfWork ??= new UnitOfWork($this, $this->objectRepositoryRegistry, $this->logger);
+    }
+
     public function isOpen(): bool
     {
-        return true;
+        return $this->isClosed === false;
+    }
+
+    public function persist(object $object): void
+    {
+        $this->errorIfClosed();
+        $this->getUnitOfWork()->persist($object);
+    }
+
+    private function errorIfClosed(): void
+    {
+        if ($this->isClosed) {
+            throw EntityManagerClosed::create();
+        }
     }
 }

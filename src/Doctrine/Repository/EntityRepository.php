@@ -14,7 +14,7 @@ final class EntityRepository extends BaseEntityRepository
     public function __construct(
         private readonly ObjectRepositoryInterface $repository,
         EntityManagerInterface $em,
-        ClassMetadata $class
+        private readonly ClassMetadata $class
     ) {
         parent::__construct($em, $class);
     }
@@ -26,7 +26,9 @@ final class EntityRepository extends BaseEntityRepository
         }
 
         $entity = $this->repository->find($id);
+
         if ($entity != null) {
+            $id = [$this->class->identifier[0] => $id];
             $this->getEntityManager()->getUnitOfWork()->registerManaged($entity, $id, []);
         }
 

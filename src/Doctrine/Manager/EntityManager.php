@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace NatePage\DynamoDbRepository\Doctrine\Manager;
 
 use Doctrine\Common\EventManager;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository as DoctrineEntityRepository;
@@ -15,6 +16,7 @@ use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\UnitOfWork as DoctrineUnitOfWork;
 use Exception;
 use NatePage\DynamoDbRepository\Common\Registry\ObjectRepositoryRegistryInterface;
+use NatePage\DynamoDbRepository\Doctrine\Dbal\DynamoDbDriver;
 use NatePage\DynamoDbRepository\Doctrine\Repository\EntityRepository;
 use NatePage\DynamoDbRepository\Doctrine\UnitOfWork\UnitOfWork;
 use Psr\Log\LoggerInterface;
@@ -73,6 +75,11 @@ final class EntityManager implements EntityManagerInterface
         $classMetadata->setIdentifier([$repository::getPrimaryKeyName()]);
 
         return $classMetadata;
+    }
+
+    public function getConnection(): Connection
+    {
+        return new Connection([], new DynamoDbDriver());
     }
 
     public function getConfiguration(): Configuration

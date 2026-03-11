@@ -22,11 +22,6 @@ trait EntityManagerNotImplementedMethodsTrait
         // TODO: Implement getCache() method.
     }
 
-    public function getConnection(): Connection
-    {
-        // TODO: Implement getConnection() method.
-    }
-
     public function getExpressionBuilder(): Expr
     {
         // TODO: Implement getExpressionBuilder() method.

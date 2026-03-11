@@ -168,13 +168,16 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
     ): iterable {
         $limit ??= 50;
         $count = 0;
+        $iterations = 0;
 
         $input->setLimit($limit);
         $input->setTableName($this->getTableName());
 
         do {
+            // Explicitly use the given exclusiveStartKey on first iteration
+            $exclusiveStartKey = $iterations === 0 ? $exclusiveStartKey : $this->lastEvaluatedKey;
             // Set this here so if we do need to loop more than once we have the updated key
-            $exclusiveStartKey = $this->decodeLastEvaluatedKey($exclusiveStartKey ?? $this->lastEvaluatedKey);
+            $exclusiveStartKey = $this->decodeLastEvaluatedKey($exclusiveStartKey);
             if ($exclusiveStartKey) {
                 $input->setExclusiveStartKey($exclusiveStartKey);
             }
@@ -195,6 +198,8 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
 
                 $count++;
             }
+
+            $iterations++;
 
             // In some cases (e.g. search) we may get empty current page results but still have more pages to fetch
             // so we need to keep looping until we either run out of pages or reach the limit

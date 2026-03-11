@@ -16,6 +16,7 @@ use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\UnitOfWork as DoctrineUnitOfWork;
 use Exception;
 use NatePage\DynamoDbRepository\Common\Registry\ObjectRepositoryRegistryInterface;
+use NatePage\DynamoDbRepository\Doctrine\Dbal\DynamoDbConnection;
 use NatePage\DynamoDbRepository\Doctrine\Dbal\DynamoDbDriver;
 use NatePage\DynamoDbRepository\Doctrine\Repository\EntityRepository;
 use NatePage\DynamoDbRepository\Doctrine\UnitOfWork\UnitOfWork;
@@ -79,7 +80,7 @@ final class EntityManager implements EntityManagerInterface
 
     public function getConnection(): Connection
     {
-        return new Connection([], new DynamoDbDriver());
+        return new DynamoDbConnection(new DynamoDbDriver());
     }
 
     public function getConfiguration(): Configuration

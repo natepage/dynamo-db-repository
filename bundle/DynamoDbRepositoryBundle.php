@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace NatePage\DynamoDbRepository\Bundle;
 
+use NatePage\DynamoDbRepository\Bundle\CompilerPass\DoctrineBridgePass;
 use NatePage\DynamoDbRepository\Bundle\CompilerPass\DynamoDbClientPass;
 use NatePage\DynamoDbRepository\Bundle\CompilerPass\ItemObjectTransformerPass;
 use NatePage\DynamoDbRepository\Bundle\CompilerPass\TableNamePass;
@@ -24,6 +25,7 @@ final class DynamoDbRepositoryBundle extends AbstractBundle
     public function build(ContainerBuilder $container): void
     {
         $container
+            ->addCompilerPass(new DoctrineBridgePass())
             ->addCompilerPass(new DynamoDbClientPass())
             ->addCompilerPass(new ItemObjectTransformerPass())
             ->addCompilerPass(new TableNamePass());

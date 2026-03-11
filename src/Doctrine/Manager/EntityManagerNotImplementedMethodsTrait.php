@@ -9,7 +9,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\Cache;
 use Doctrine\ORM\Internal\Hydration\AbstractHydrator;
-use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use Doctrine\ORM\NativeQuery;
 use Doctrine\ORM\Proxy\ProxyFactory;
 use Doctrine\ORM\Query;
@@ -28,11 +27,6 @@ trait EntityManagerNotImplementedMethodsTrait
     public function getConnection(): Connection
     {
         // TODO: Implement getConnection() method.
-    }
-
-    public function getMetadataFactory(): ClassMetadataFactory
-    {
-        // TODO: Implement getMetadataFactory() method.
     }
 
     public function getExpressionBuilder(): Expr
@@ -93,16 +87,6 @@ trait EntityManagerNotImplementedMethodsTrait
     public function lock(object $entity, int|LockMode $lockMode, DateTimeInterface|int|null $lockVersion = null): void
     {
         // TODO: Implement lock() method.
-    }
-
-    public function getEventManager(): EventManager
-    {
-        // TODO: Implement getEventManager() method.
-    }
-
-    public function isOpen(): bool
-    {
-        // TODO: Implement isOpen() method.
     }
 
     public function getUnitOfWork(): UnitOfWork

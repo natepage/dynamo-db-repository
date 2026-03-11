@@ -13,10 +13,10 @@ final class EntityRepository extends BaseEntityRepository
 {
     public function __construct(
         private readonly ObjectRepositoryInterface $repository,
-        EntityManagerInterface $em,
+        private readonly EntityManagerInterface $entityManager,
         private readonly ClassMetadata $class
     ) {
-        parent::__construct($em, $class);
+        parent::__construct($entityManager, $class);
     }
 
     public function find(mixed $id, int|LockMode|null $lockMode = null, ?int $lockVersion = null): object|null
@@ -29,7 +29,14 @@ final class EntityRepository extends BaseEntityRepository
 
         if ($entity != null) {
             $id = [$this->class->identifier[0] => $id];
-            $this->getEntityManager()->getUnitOfWork()->registerManaged($entity, $id, []);
+
+            // Very basic support of entity data, no support for associations
+            $data = [];
+            foreach ($this->class->propertyAccessors as $field => $accessor) {
+                $data[$field] = $accessor->getValue($entity);
+            }
+
+            $this->entityManager->getUnitOfWork()->registerManaged($entity, $id, $data);
         }
 
         return $entity;

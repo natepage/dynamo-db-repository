@@ -5,6 +5,7 @@ namespace NatePage\DynamoDbRepository\Doctrine\Manager;
 
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository as DoctrineEntityRepository;
@@ -12,6 +13,9 @@ use Doctrine\ORM\Exception\EntityManagerClosed;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver;
+use Doctrine\ORM\Proxy\ProxyFactory;
+use Doctrine\ORM\Query\Expr;
+use Doctrine\ORM\Query\FilterCollection;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\UnitOfWork as DoctrineUnitOfWork;
 use Exception;
@@ -21,6 +25,7 @@ use NatePage\DynamoDbRepository\Doctrine\Dbal\DynamoDbDriver;
 use NatePage\DynamoDbRepository\Doctrine\Repository\EntityRepository;
 use NatePage\DynamoDbRepository\Doctrine\UnitOfWork\UnitOfWork;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 final class EntityManager implements EntityManagerInterface
 {
@@ -28,7 +33,13 @@ final class EntityManager implements EntityManagerInterface
 
     private ?ClassMetadataFactory $classMetadataFactory = null;
 
+    private ?DynamoDbConnection $connection = null;
+
     private ?EventManager $eventManager = null;
+
+    private ?FilterCollection $filterCollection = null;
+
+    private ?ProxyFactory $proxyFactory = null;
 
     private ?UnitOfWork $unitOfWork = null;
 
@@ -41,14 +52,59 @@ final class EntityManager implements EntityManagerInterface
     ) {
     }
 
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function beginTransaction(): void
+    {
+        $this->getConnection()->beginTransaction();
+    }
+
+    public function clear(): void
+    {
+        $this->getUnitOfWork()->clear();
+    }
+
     public function close(): void
     {
         $this->isClosed = true;
     }
 
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function commit(): void
+    {
+        $this->getConnection()->commit();
+    }
+
+    public function contains(object $object): bool
+    {
+        $this->errorIfClosed();
+
+        return ($this->getUnitOfWork()->isScheduledForInsert($object)
+                || $this->getUnitOfWork()->isInIdentityMap($object))
+            && $this->getUnitOfWork()->isScheduledForDelete($object) === false;
+    }
+
     public function createQueryBuilder(): QueryBuilder
     {
         return new QueryBuilder($this);
+    }
+
+    public function detach(object $object): void
+    {
+        $this->errorIfClosed();
+        $this->getUnitOfWork()->detach($object);
+    }
+
+    public function find(
+        string $className,
+        mixed $id,
+        int|LockMode|null $lockMode = null,
+        ?int $lockVersion = null
+    ): object|null {
+        return $this->getRepository($className)->find($id, $lockMode, $lockVersion);
     }
 
     /**
@@ -64,7 +120,7 @@ final class EntityManager implements EntityManagerInterface
     {
         try {
             return $this->getMetadataFactory()->getMetadataFor($className);
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
              $this->logger?->error(\sprintf(
                  'Failed to get class metadata for "%s". Creating default one manually...', $className
              ), ['exception' => $throwable->getMessage()]);
@@ -80,7 +136,7 @@ final class EntityManager implements EntityManagerInterface
 
     public function getConnection(): Connection
     {
-        return new DynamoDbConnection(new DynamoDbDriver());
+        return $this->connection ??= new DynamoDbConnection(new DynamoDbDriver());
     }
 
     public function getConfiguration(): Configuration
@@ -98,6 +154,16 @@ final class EntityManager implements EntityManagerInterface
     public function getEventManager(): EventManager
     {
         return $this->eventManager ??= new EventManager();
+    }
+
+    public function getExpressionBuilder(): Expr
+    {
+        return new Expr();
+    }
+
+    public function getFilters(): FilterCollection
+    {
+        return $this->filterCollection ??= new FilterCollection($this);
     }
 
     public function getMetadataFactory(): ClassMetadataFactory
@@ -119,6 +185,16 @@ final class EntityManager implements EntityManagerInterface
         return $this->classMetadataFactory = $factory;
     }
 
+    public function getProxyFactory(): ProxyFactory
+    {
+        return $this->proxyFactory ??= new ProxyFactory(
+            $this,
+            $this->getConfiguration()->getProxyDir(),
+            $this->getConfiguration()->getProxyNamespace(),
+            $this->getConfiguration()->getAutoGenerateProxyClasses(),
+        );
+    }
+
     public function getRepository(string $className): DoctrineEntityRepository
     {
         $repository = $this->objectRepositoryRegistry->get($className);
@@ -131,6 +207,16 @@ final class EntityManager implements EntityManagerInterface
         return $this->unitOfWork ??= new UnitOfWork($this, $this->objectRepositoryRegistry, $this->logger);
     }
 
+    public function hasFilters(): bool
+    {
+        return $this->filterCollection !== null;
+    }
+
+    public function isFiltersStateClean(): bool
+    {
+        return $this->filterCollection?->isClean() ?? true;
+    }
+
     public function isOpen(): bool
     {
         return $this->isClosed === false;
@@ -140,6 +226,34 @@ final class EntityManager implements EntityManagerInterface
     {
         $this->errorIfClosed();
         $this->getUnitOfWork()->persist($object);
+    }
+
+    public function refresh(object $object, int|LockMode|null $lockMode = null): void
+    {
+        $this->errorIfClosed();
+        $this->getUnitOfWork()->refresh($object, $lockMode);
+    }
+
+    public function remove(object $object): void
+    {
+        $this->errorIfClosed();
+        $this->getUnitOfWork()->remove($object);
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function rollback(): void
+    {
+        $this->getConnection()->rollBack();
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function wrapInTransaction(callable $func): mixed
+    {
+        return $this->getConnection()->transactional($func);
     }
 
     private function errorIfClosed(): void

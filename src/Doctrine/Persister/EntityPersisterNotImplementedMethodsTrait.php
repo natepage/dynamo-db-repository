@@ -71,11 +71,6 @@ trait EntityPersisterNotImplementedMethodsTrait
         // TODO: Implement loadOneToOneEntity() method.
     }
 
-    public function refresh(array $id, object $entity, int|LockMode|null $lockMode = null): void
-    {
-        // TODO: Implement refresh() method.
-    }
-
     public function loadCriteria(Criteria $criteria): array
     {
         // TODO: Implement loadCriteria() method.

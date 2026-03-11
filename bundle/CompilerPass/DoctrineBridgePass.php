@@ -35,6 +35,6 @@ final readonly class DoctrineBridgePass implements CompilerPassInterface
         $definition
             ->setArgument('$defaultManagerName', param('doctrine.default_entity_manager'))
             ->setArgument('$entityManagersServiceIds', param('doctrine.entity_managers'))
-            ->setArgument('$configurations', service_locator($configurations));
+            ->setArgument('$ormConfigurations', service_locator($configurations));
     }
 }

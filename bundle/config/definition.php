@@ -12,6 +12,7 @@ return static function (DefinitionConfigurator $definition) {
                     ->booleanNode('array_as_json_string')->defaultValue(true)->end()
                     ->scalarNode('datetime_class')->defaultValue(DateTimeImmutable::class)->end()
                     ->scalarNode('datetime_format')->defaultValue(DateTimeInterface::ATOM)->end()
+                    ->scalarNode('default_string_if_null')->defaultNull()->end()
                 ->end()
             ->end()
             ->scalarNode('table_prefix')->defaultNull()->end()

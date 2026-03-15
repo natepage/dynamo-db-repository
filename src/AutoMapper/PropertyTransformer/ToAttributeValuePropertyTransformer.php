@@ -10,6 +10,7 @@ use AutoMapper\Metadata\TargetPropertyMetadata;
 use BackedEnum;
 use DateTimeInterface;
 use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
+use NatePage\Utils\Helper\StringHelper;
 use Symfony\Component\TypeInfo\Type\BackedEnumType;
 use Symfony\Component\TypeInfo\Type\ObjectType;
 use Symfony\Component\TypeInfo\TypeIdentifier;
@@ -24,6 +25,13 @@ final class ToAttributeValuePropertyTransformer extends AbstractAttributeValuePr
 
         // Support null values for all types, validation should be handled earlier in the process
         if ($value === null) {
+            // Allow to specify a default string for null values
+            // This is useful to find items with null values using a filter expression,
+            // as DynamoDB does not support filtering on null values
+            if ($computed === self::MAPPING_STRING && StringHelper::isNotEmpty($this->defaultStringIfNull)) {
+                return AttributeValue::create([$computed => $this->defaultStringIfNull]);
+            }
+
             return AttributeValue::create(['NULL' => true]);
         }
 

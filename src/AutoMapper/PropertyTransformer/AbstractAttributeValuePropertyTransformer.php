@@ -29,6 +29,7 @@ abstract class AbstractAttributeValuePropertyTransformer implements PropertyTran
         protected bool $arrayAsJsonString = true,
         protected string $dateTimeClass = DateTimeImmutable::class,
         protected string $dateTimeFormat = DateTimeInterface::ATOM,
+        protected ?string $defaultStringIfNull = null
     ) {
     }
 

@@ -68,7 +68,14 @@ final class FromAttributeValuePropertyTransformer extends AbstractAttributeValue
             return $datetimeClass::createFromFormat($this->dateTimeFormat, $attributeValueBody[self::MAPPING_STRING]);
         }
 
-        return $attributeValueBody[$computed] ?? null;
+        $returnValue = $attributeValueBody[$computed] ?? null;
+
+        // Default string for null values, convert back to null
+        if ($computed === self::MAPPING_STRING && $returnValue === $this->defaultStringIfNull) {
+            $returnValue = null;
+        }
+
+        return $returnValue;
     }
 
     public function supports(

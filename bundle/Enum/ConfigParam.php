@@ -11,5 +11,7 @@ enum ConfigParam: string
 
     case AutoMapperDatetimeFormat = 'dynamo_db_repository.auto_mapper.datetime_format';
 
+    case AutoMapperDefaultStringIfNull = 'dynamo_db_repository.auto_mapper.default_string_if_null';
+
     case TablePrefix = 'dynamo_db_repository.table_prefix';
 }

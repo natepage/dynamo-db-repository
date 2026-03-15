@@ -33,7 +33,8 @@ final class FromAttributeValuePropertyTransformer extends AbstractAttributeValue
 
         $attributeValueBody = $value->requestBody();
 
-        if ($value->getNull() === true || $attributeValueBody[self::MAPPING_STRING] === $this->defaultStringIfNull) {
+        if ($value->getNull() === true
+            || (StringHelper::isNotEmpty($this->defaultStringIfNull) && $attributeValueBody[self::MAPPING_STRING] === $this->defaultStringIfNull)) {
             return null;
         }
 

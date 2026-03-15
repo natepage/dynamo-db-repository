@@ -34,6 +34,12 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
     ) {
     }
 
+    public static function getPrimaryKeyName(): string
+    {
+        // This is only a default value, repositories should override this method
+        return 'id';
+    }
+
     public function delete(object $object): object
     {
         $this->doDelete(static::getPrimaryKeyName(), $this->getPrimaryKeyValue($object));
@@ -82,8 +88,6 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
     }
 
     abstract public static function getObjectClass(): string;
-
-    abstract public static function getPrimaryKeyName(): string;
 
     abstract protected function getPrimaryKeyValue(object $object): string;
 

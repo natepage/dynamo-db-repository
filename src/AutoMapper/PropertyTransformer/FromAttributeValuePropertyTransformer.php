@@ -32,17 +32,18 @@ final class FromAttributeValuePropertyTransformer extends AbstractAttributeValue
         }
 
         $attributeValueBody = $value->requestBody();
+        $attributeValueString = $attributeValueBody[self::MAPPING_STRING] ?? null;
 
         if ($value->getNull() === true
-            || (StringHelper::isNotEmpty($this->defaultStringIfNull) && $attributeValueBody[self::MAPPING_STRING] === $this->defaultStringIfNull)) {
+            || (StringHelper::isNotEmpty($this->defaultStringIfNull) && $attributeValueString === $this->defaultStringIfNull)) {
             return null;
         }
 
         // Array as JSON string
         if ($computed === self::ARRAY_AS_JSON_STRING_COMPUTED
-            && StringHelper::isNotEmpty($attributeValueBody[self::MAPPING_STRING])
-            && \json_validate($attributeValueBody[self::MAPPING_STRING])) {
-            return \json_decode($attributeValueBody[self::MAPPING_STRING], true);
+            && StringHelper::isNotEmpty($attributeValueString)
+            && \json_validate($attributeValueString)) {
+            return \json_decode($attributeValueString, true);
         }
 
         // BackedEnum
@@ -66,7 +67,7 @@ final class FromAttributeValuePropertyTransformer extends AbstractAttributeValue
             }
 
             /** @var class-string<DateTimeInterface> $datetimeClass */
-            return $datetimeClass::createFromFormat($this->dateTimeFormat, $attributeValueBody[self::MAPPING_STRING]);
+            return $datetimeClass::createFromFormat($this->dateTimeFormat, $attributeValueString);
         }
 
         return $attributeValueBody[$computed] ?? null;

@@ -58,7 +58,7 @@ final class ManagerRegistry implements ManagerRegistryInterface, ResetInterface
             return $this->getManager($this->classToManagerName[$class]);
         }
 
-        foreach ($this->getManagerNames() as $managerName) {
+        foreach (\array_keys($this->getManagerNames()) as $managerName) {
             $manager = $this->getManager($managerName);
 
             if ($manager->getMetadataFactory()->isTransient($class) === false) {

@@ -39,6 +39,8 @@ final class ToAttributeValuePropertyTransformer extends AbstractAttributeValuePr
             \is_array($value) => \json_encode($value),
             $value instanceof BackedEnum => $value->value,
             $value instanceof DateTimeInterface => $value->format($this->dateTimeFormat),
+            // DynamoDB expects number values as string
+            $computed === self::MAPPING_NUMBER => (string)$value,
             default => $value,
         };
 

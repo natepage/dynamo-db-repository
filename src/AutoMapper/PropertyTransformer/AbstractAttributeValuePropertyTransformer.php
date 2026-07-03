@@ -18,10 +18,12 @@ abstract class AbstractAttributeValuePropertyTransformer implements PropertyTran
 {
     protected const array BUILT_IN_MAPPING = [
         TypeIdentifier::BOOL->value => 'BOOL',
-        TypeIdentifier::INT->value => 'N',
-        TypeIdentifier::FLOAT->value => 'N',
-        TypeIdentifier::STRING->value => 'S',
+        TypeIdentifier::INT->value => self::MAPPING_NUMBER,
+        TypeIdentifier::FLOAT->value => self::MAPPING_NUMBER,
+        TypeIdentifier::STRING->value => self::MAPPING_STRING,
     ];
+
+    protected const string MAPPING_NUMBER = 'N';
 
     protected const string MAPPING_STRING = 'S';
 

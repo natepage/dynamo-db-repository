@@ -71,7 +71,7 @@ final class ManagerRegistry implements ManagerRegistryInterface, ResetInterface
 
     public function getManagerNames(): array
     {
-        return \array_keys($this->entityManagersServiceIds ?? []);
+        return $this->entityManagersServiceIds ?? [];
     }
 
     public function getRepository(string $persistentObject, ?string $persistentManagerName = null): ObjectRepository

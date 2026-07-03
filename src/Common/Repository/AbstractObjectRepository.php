@@ -17,6 +17,7 @@ use NatePage\DynamoDbRepository\Common\Exception\RepositoryNotConfiguredExceptio
 use NatePage\DynamoDbRepository\Common\Naming\TableNamingStrategyInterface;
 use NatePage\DynamoDbRepository\Common\Transformer\ItemObjectTransformerInterface;
 use NatePage\Utils\Helper\StringHelper;
+use Psr\Log\LoggerInterface;
 
 abstract class AbstractObjectRepository implements ObjectRepositoryInterface
 {
@@ -29,6 +30,7 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
     public function __construct(
         protected DynamoDbClient $dynamoDbClient,
         protected TableNamingStrategyInterface $tableNamingStrategy,
+        protected LoggerInterface $logger,
         private ?string $tableName = null,
         private readonly ?string $tablePrefix = null
     ) {
@@ -220,6 +222,11 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
         if (StringHelper::isNotEmpty($uniqueAttr)) {
             $input['ConditionExpression'] = \sprintf('attribute_not_exists(%s)', $uniqueAttr);
         }
+
+        $this->logger->debug(\sprintf('Putting item in table "%s"', $this->getTableName()), [
+            'item' => \array_map(static fn ($v) => $v instanceof AttributeValue ? $v->requestBody() : $v, $input['Item']),
+            'conditionExpression' => $input['ConditionExpression'] ?? '__not_set__',
+        ]);
 
         $this->dynamoDbClient->putItem(new PutItemInput($input))->getAttributes();
 

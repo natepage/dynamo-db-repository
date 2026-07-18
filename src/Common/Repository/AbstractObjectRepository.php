@@ -107,6 +107,15 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
             : null;
     }
 
+    protected function defineTableName(): string
+    {
+        if (StringHelper::isNotEmpty($this->tableName)) {
+            return $this->tableName;
+        }
+
+        return $this->tableName = $this->tableNamingStrategy->classToTableName(static::getObjectClass());
+    }
+
     protected function doDelete(string $keyName, string $keyValue): void
     {
         $result = $this->dynamoDbClient->deleteItem(new DeleteItemInput([
@@ -262,15 +271,6 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
     {
         // Extension point for repositories that want a simple transform without needing to implement the full interface
         return $this->itemObjectTransformer?->toObject(static::getObjectClass(), $item, $context);
-    }
-
-    private function defineTableName(): string
-    {
-        if (StringHelper::isNotEmpty($this->tableName)) {
-            return $this->tableName;
-        }
-
-        return $this->tableName = $this->tableNamingStrategy->classToTableName(static::getObjectClass());
     }
 
     private function resolveLastEvaluateKey(QueryOutput|ScanOutput $output): QueryOutput|ScanOutput

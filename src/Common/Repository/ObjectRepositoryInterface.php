@@ -17,6 +17,11 @@ interface ObjectRepositoryInterface
      */
     public static function getObjectClass(): string;
 
+    /**
+     * @phpstan-return array<class-string<T>>|null
+     */
+    public static function getObjectConcreteClasses(): ?array;
+
     public static function getPrimaryKeyName(): string;
 
     /**

@@ -5,7 +5,6 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use AsyncAws\DynamoDb\DynamoDbClient;
 use NatePage\DynamoDbRepository\Bundle\Enum\ConfigServiceId;
-use NatePage\DynamoDbRepository\Bundle\Enum\ConfigTag;
 use NatePage\DynamoDbRepository\Common\Naming\TableNamingStrategyInterface;
 use NatePage\DynamoDbRepository\Common\Naming\UnderscoreTableNamingStrategy;
 use NatePage\DynamoDbRepository\Common\Registry\ContainerObjectRepositoryRegistry;
@@ -22,12 +21,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(ConfigServiceId::DynamoDbClient->value, DynamoDbClient::class);
 
     // Registry
-    $services
-        ->set(ObjectRepositoryRegistryInterface::class, ContainerObjectRepositoryRegistry::class)
-        ->arg('$repositories', tagged_locator(
-            tag: ConfigTag::ObjectRepository->value,
-            defaultIndexMethod: 'getObjectClass',
-        ));
+    $services->set(ObjectRepositoryRegistryInterface::class, ContainerObjectRepositoryRegistry::class);
 
     // Table naming strategy
     $services->set(TableNamingStrategyInterface::class, UnderscoreTableNamingStrategy::class);

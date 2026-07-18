@@ -36,6 +36,13 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
     ) {
     }
 
+    public static function getObjectConcreteClasses(): ?array
+    {
+        // This allows repositories to define a list of concrete classes to register within the registry,
+        // this is useful for objects extending a common abstract class
+        return null;
+    }
+
     public static function getPrimaryKeyName(): string
     {
         // This is only a default value, repositories should override this method
@@ -268,10 +275,11 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
         return $this->itemObjectTransformer?->toItem($instance, $context);
     }
 
-    protected function transformToObject(array $item, ?array $context = null): ?object
+    protected function transformToObject(array $item, ?string $class = null, ?array $context = null): ?object
     {
         // Extension point for repositories that want a simple transform without needing to implement the full interface
-        return $this->itemObjectTransformer?->toObject(static::getObjectClass(), $item, $context);
+        // Also allows to override the class to use based on item
+        return $this->itemObjectTransformer?->toObject($class ?? static::getObjectClass(), $item, $context);
     }
 
     private function resolveLastEvaluateKey(QueryOutput|ScanOutput $output): QueryOutput|ScanOutput

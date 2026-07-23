@@ -28,11 +28,6 @@ trait ManagerRegistryNotImplementedMethodsTrait
         // TODO: Implement getConnectionNames() method.
     }
 
-    public function getManagers(): array
-    {
-        // TODO: Implement getManagers() method.
-    }
-
     public function resetManager(?string $name = null): ObjectManager
     {
         // TODO: Implement resetManager() method.

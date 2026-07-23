@@ -48,6 +48,11 @@ final class ManagerRegistry implements ManagerRegistryInterface, ResetInterface
         return $this->managers[$name] = new EntityManager($this->objectRepositoryRegistry, $configuration, $this->logger);
     }
 
+    public function getManagers(): array
+    {
+        return $this->managers;
+    }
+
     public function getManagerForClass(string $class): ObjectManager|null
     {
         if ($this->objectRepositoryRegistry->has($class) === false) {

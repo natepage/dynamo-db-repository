@@ -28,14 +28,6 @@ final class FromAttributeValuePropertyTransformer extends AbstractAttributeValue
 
     private const string DOCTRINE_COLLECTION_AS_JSON_STRING_PREFIX_COMPUTED = 'doctrine_collection_as_json_string,';
 
-    private AutoMapperInterface $autoMapper;
-
-    #[Required]
-    public function setAutoMapper(AutoMapperInterface $autoMapper): void
-    {
-        $this->autoMapper = $autoMapper;
-    }
-
     public function transform(mixed $value, object|array $source, array $context, mixed $computed = null): mixed
     {
         if (isset($context[AutoMapperItemObjectTransformer::CONTEXT_KEY]) === false

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace NatePage\DynamoDbRepository\AutoMapper\PropertyTransformer;
 
+use AutoMapper\AutoMapperInterface;
 use AutoMapper\Metadata\MapperMetadata;
 use AutoMapper\Metadata\SourcePropertyMetadata;
 use AutoMapper\Metadata\TargetPropertyMetadata;
@@ -12,7 +13,6 @@ use DateTimeInterface;
 use Doctrine\Common\Collections\Collection;
 use NatePage\Utils\Helper\StringHelper;
 use Symfony\Component\TypeInfo\Type;
-use Symfony\Component\TypeInfo\Type\CollectionType;
 use Symfony\Component\TypeInfo\Type\ObjectType;
 use Symfony\Component\TypeInfo\Type\WrappingTypeInterface;
 use Symfony\Component\TypeInfo\TypeIdentifier;
@@ -31,6 +31,7 @@ abstract class AbstractAttributeValuePropertyTransformer implements PropertyTran
     protected const string MAPPING_STRING = 'S';
 
     public function __construct(
+        protected AutoMapperInterface $autoMapper,
         protected bool $arrayAsJsonString = true,
         protected string $dateTimeClass = DateTimeImmutable::class,
         protected string $dateTimeFormat = DateTimeInterface::ATOM,

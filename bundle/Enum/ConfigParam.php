@@ -13,5 +13,7 @@ enum ConfigParam: string
 
     case AutoMapperDefaultStringIfNull = 'dynamo_db_repository.auto_mapper.default_string_if_null';
 
+    case AutoMapperDoctrineCollectionAsJsonString = 'dynamo_db_repository.auto_mapper.doctrine_collection_as_json_string';
+
     case TablePrefix = 'dynamo_db_repository.table_prefix';
 }

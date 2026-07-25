@@ -4,21 +4,26 @@ declare(strict_types=1);
 namespace NatePage\DynamoDbRepository\Tests\AutoMapper\Transformer;
 
 use AsyncAws\DynamoDb\ValueObject\AttributeValue;
-use AutoMapper\AutoMapper;
-use NatePage\DynamoDbRepository\AutoMapper\PropertyTransformer\FromAttributeValuePropertyTransformer;
-use NatePage\DynamoDbRepository\AutoMapper\PropertyTransformer\ToAttributeValuePropertyTransformer;
+use Doctrine\Common\Collections\ArrayCollection;
 use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
-use NatePage\DynamoDbRepository\Tests\AbstractTestCase;
+use NatePage\DynamoDbRepository\AutoMapper\ValueObject\Result;
+use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\ItemDto;
 use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\SimpleObject;
+use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\WithCollectionObject;
+use NatePage\DynamoDbRepository\Tests\Fixture\Kernel\TestKernel;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\HttpKernel\KernelInterface;
 
-final class AutoMapperItemObjectTransformerTest extends AbstractTestCase
+/**
+ * AutoMapper is instantiated differently in the context of the Symfony bundle, providing better control
+ * over transformer factories order, allowing to ensure our property transformers run before the built-in ones.
+ * This is why we run those tests within the context of Symfony.
+ */
+final class AutoMapperItemObjectTransformerTest extends KernelTestCase
 {
     public function testToItem(): void
     {
-        $transformer = new AutoMapperItemObjectTransformer(AutoMapper::create(propertyTransformers: [
-            new FromAttributeValuePropertyTransformer(),
-            new ToAttributeValuePropertyTransformer(),
-        ]));
+        $transformer = self::getContainer()->get(AutoMapperItemObjectTransformer::class);
 
         $item = $transformer->toItem(new SimpleObject(
             'id',
@@ -38,5 +43,32 @@ final class AutoMapperItemObjectTransformerTest extends AbstractTestCase
         self::assertEquals('name', $object->name);
         self::assertEquals('description', $object->description);
         self::assertEquals(['simple', 'value'], $object->tags);
+    }
+
+    public function testToItemWithCollection(): void
+    {
+        $transformer = self::getContainer()->get(AutoMapperItemObjectTransformer::class);
+
+        $object = new WithCollectionObject();
+        $object->setItems(new ArrayCollection([
+            new ItemDto('item1'),
+            new ItemDto('item2'),
+        ]));
+
+        $item = $transformer->toItem($object);
+        $resultObject = $transformer->toObject(WithCollectionObject::class, $item);
+
+        self::assertIsArray($item);
+        self::assertCount(1, $item);
+        self::assertInstanceOf(AttributeValue::class, $item['items'] ?? null);
+        self::assertInstanceOf(WithCollectionObject::class, $resultObject);
+        self::assertCount(2, $resultObject->getItems());
+        self::assertEquals('item1', $resultObject->getItems()->get(0)->getName());
+        self::assertEquals('item2', $resultObject->getItems()->get(1)->getName());
+    }
+
+    protected static function createKernel(array $options = []): KernelInterface
+    {
+        return new TestKernel('test', true, $options['config'] ?? []);
     }
 }

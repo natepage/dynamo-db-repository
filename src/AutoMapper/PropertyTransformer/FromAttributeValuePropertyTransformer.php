@@ -4,16 +4,19 @@ declare(strict_types=1);
 namespace NatePage\DynamoDbRepository\AutoMapper\PropertyTransformer;
 
 use AsyncAws\DynamoDb\ValueObject\AttributeValue;
+use AutoMapper\AutoMapperInterface;
 use AutoMapper\Metadata\MapperMetadata;
 use AutoMapper\Metadata\SourcePropertyMetadata;
 use AutoMapper\Metadata\TargetPropertyMetadata;
 use BackedEnum;
 use DateTimeInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
 use NatePage\Utils\Helper\StringHelper;
 use Symfony\Component\TypeInfo\Type\BackedEnumType;
 use Symfony\Component\TypeInfo\Type\ObjectType;
 use Symfony\Component\TypeInfo\TypeIdentifier;
+use Symfony\Contracts\Service\Attribute\Required;
 
 final class FromAttributeValuePropertyTransformer extends AbstractAttributeValuePropertyTransformer
 {
@@ -22,6 +25,16 @@ final class FromAttributeValuePropertyTransformer extends AbstractAttributeValue
     private const string BACKED_ENUM_PREFIX_COMPUTED = 'backed_enum,';
 
     private const string DATETIME_PREFIX_COMPUTED = 'datetime,';
+
+    private const string DOCTRINE_COLLECTION_AS_JSON_STRING_PREFIX_COMPUTED = 'doctrine_collection_as_json_string,';
+
+    private AutoMapperInterface $autoMapper;
+
+    #[Required]
+    public function setAutoMapper(AutoMapperInterface $autoMapper): void
+    {
+        $this->autoMapper = $autoMapper;
+    }
 
     public function transform(mixed $value, object|array $source, array $context, mixed $computed = null): mixed
     {
@@ -70,6 +83,15 @@ final class FromAttributeValuePropertyTransformer extends AbstractAttributeValue
             return $datetimeClass::createFromFormat($this->dateTimeFormat, $attributeValueString);
         }
 
+        // Doctrine Collection
+        if (\str_starts_with($computed, self::DOCTRINE_COLLECTION_AS_JSON_STRING_PREFIX_COMPUTED)) {
+            $targetClass = \substr($computed, \strlen(self::DOCTRINE_COLLECTION_AS_JSON_STRING_PREFIX_COMPUTED));
+            $rawValue = \json_decode($attributeValueString, true);
+            $transformedValue = $this->autoMapper->mapCollection($rawValue, $targetClass);
+
+            return new ArrayCollection($transformedValue);
+        }
+
         return $attributeValueBody[$computed] ?? null;
     }
 
@@ -103,6 +125,16 @@ final class FromAttributeValuePropertyTransformer extends AbstractAttributeValue
         if ($targetType instanceof ObjectType
             && \is_a($targetType->getClassName(), DateTimeInterface::class, true)) {
             return self::DATETIME_PREFIX_COMPUTED . $targetType->getClassName();
+        }
+
+        if ($this->doctrineCollectionAsJsonString && $this->isDoctrineCollection($target->type)) {
+            /** @var \Symfony\Component\TypeInfo\Type\CollectionType $type */
+            $type = $target->type;
+            $collectionValueType = $type->getCollectionValueType();
+
+            if ($collectionValueType instanceof ObjectType) {
+                return self::DOCTRINE_COLLECTION_AS_JSON_STRING_PREFIX_COMPUTED . $collectionValueType->getClassName();
+            }
         }
 
         return $this->resolveBuiltInMapping($targetType);

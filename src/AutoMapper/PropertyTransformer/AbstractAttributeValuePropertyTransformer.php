@@ -9,8 +9,11 @@ use AutoMapper\Metadata\TargetPropertyMetadata;
 use AutoMapper\Transformer\PropertyTransformer\PropertyTransformerComputeInterface;
 use DateTimeImmutable;
 use DateTimeInterface;
+use Doctrine\Common\Collections\Collection;
 use NatePage\Utils\Helper\StringHelper;
 use Symfony\Component\TypeInfo\Type;
+use Symfony\Component\TypeInfo\Type\CollectionType;
+use Symfony\Component\TypeInfo\Type\ObjectType;
 use Symfony\Component\TypeInfo\Type\WrappingTypeInterface;
 use Symfony\Component\TypeInfo\TypeIdentifier;
 
@@ -31,6 +34,7 @@ abstract class AbstractAttributeValuePropertyTransformer implements PropertyTran
         protected bool $arrayAsJsonString = true,
         protected string $dateTimeClass = DateTimeImmutable::class,
         protected string $dateTimeFormat = DateTimeInterface::ATOM,
+        protected bool $doctrineCollectionAsJsonString = true,
         protected ?string $defaultStringIfNull = null
     ) {
     }
@@ -52,6 +56,25 @@ abstract class AbstractAttributeValuePropertyTransformer implements PropertyTran
         TargetPropertyMetadata $target,
         MapperMetadata $mapperMetadata
     ): mixed;
+
+    protected function isDoctrineCollection(?Type $type): bool
+    {
+        if (\interface_exists(Collection::class) === false) {
+            return false;
+        }
+
+        return $type->isSatisfiedBy(static function (Type $assessType): bool {
+            if ($assessType instanceof ObjectType === false) {
+                return false;
+            }
+
+            $className = $assessType->getClassName();
+            $implementedClasses = \class_implements($className);
+
+            return $className === Collection::class
+                || ($implementedClasses && \in_array(Collection::class, $implementedClasses, true));
+        });
+    }
 
     protected function resolveBuiltInMapping(?Type $type): ?string
     {

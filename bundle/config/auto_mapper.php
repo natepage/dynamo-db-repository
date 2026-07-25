@@ -18,7 +18,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->bind('bool $arrayAsJsonString', param(ConfigParam::AutoMapperArrayAsJsonString->value))
         ->bind('string $dateTimeClass', param(ConfigParam::AutoMapperDatetimeClass->value))
         ->bind('string $dateTimeFormat', param(ConfigParam::AutoMapperDatetimeFormat->value))
-        ->bind('string $defaultStringIfNull', param(ConfigParam::AutoMapperDefaultStringIfNull->value));
+        ->bind('string $defaultStringIfNull', param(ConfigParam::AutoMapperDefaultStringIfNull->value))
+        ->bind('bool $doctrineCollectionAsJsonString', param(ConfigParam::AutoMapperDoctrineCollectionAsJsonString->value));
 
     // Property transformers
     $services

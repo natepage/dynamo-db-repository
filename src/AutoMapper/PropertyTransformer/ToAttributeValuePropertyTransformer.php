@@ -9,8 +9,10 @@ use AutoMapper\Metadata\SourcePropertyMetadata;
 use AutoMapper\Metadata\TargetPropertyMetadata;
 use BackedEnum;
 use DateTimeInterface;
+use Doctrine\Common\Collections\Collection;
 use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
 use NatePage\Utils\Helper\StringHelper;
+use Symfony\Component\TypeInfo\Type;
 use Symfony\Component\TypeInfo\Type\BackedEnumType;
 use Symfony\Component\TypeInfo\Type\ObjectType;
 use Symfony\Component\TypeInfo\TypeIdentifier;
@@ -39,6 +41,7 @@ final class ToAttributeValuePropertyTransformer extends AbstractAttributeValuePr
             \is_array($value) => \json_encode($value),
             $value instanceof BackedEnum => $value->value,
             $value instanceof DateTimeInterface => $value->format($this->dateTimeFormat),
+            $value instanceof Collection => \json_encode($value->getValues()),
             // DynamoDB expects number values as string
             $computed === self::MAPPING_NUMBER => (string)$value,
             default => $value,
@@ -72,6 +75,10 @@ final class ToAttributeValuePropertyTransformer extends AbstractAttributeValuePr
 
         if ($sourceType instanceof ObjectType
             && \is_a($sourceType->getClassName(), DateTimeInterface::class, true)) {
+            return self::MAPPING_STRING;
+        }
+
+        if ($this->doctrineCollectionAsJsonString && $this->isDoctrineCollection($source->type)) {
             return self::MAPPING_STRING;
         }
 

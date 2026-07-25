@@ -6,10 +6,10 @@ namespace NatePage\DynamoDbRepository\Tests\AutoMapper\Transformer;
 use AsyncAws\DynamoDb\ValueObject\AttributeValue;
 use Doctrine\Common\Collections\ArrayCollection;
 use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
-use NatePage\DynamoDbRepository\AutoMapper\ValueObject\Result;
 use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\ItemDto;
 use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\SimpleObject;
-use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\WithCollectionObject;
+use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\WithCollectionAddRemoveObject;
+use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\WithCollectionSetObject;
 use NatePage\DynamoDbRepository\Tests\Fixture\Kernel\TestKernel;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -49,19 +49,20 @@ final class AutoMapperItemObjectTransformerTest extends KernelTestCase
     {
         $transformer = self::getContainer()->get(AutoMapperItemObjectTransformer::class);
 
-        $object = new WithCollectionObject();
-        $object->setItems(new ArrayCollection([
+        $items = [
             new ItemDto('item1'),
             new ItemDto('item2'),
-        ]));
+        ];
+        $object = new WithCollectionAddRemoveObject();
+        $object->setItems(new ArrayCollection($items));
 
         $item = $transformer->toItem($object);
-        $resultObject = $transformer->toObject(WithCollectionObject::class, $item);
+        $resultObject = $transformer->toObject(WithCollectionAddRemoveObject::class, $item);
 
         self::assertIsArray($item);
         self::assertCount(1, $item);
         self::assertInstanceOf(AttributeValue::class, $item['items'] ?? null);
-        self::assertInstanceOf(WithCollectionObject::class, $resultObject);
+        self::assertInstanceOf(WithCollectionAddRemoveObject::class, $resultObject);
         self::assertCount(2, $resultObject->getItems());
         self::assertEquals('item1', $resultObject->getItems()->get(0)->getName());
         self::assertEquals('item2', $resultObject->getItems()->get(1)->getName());

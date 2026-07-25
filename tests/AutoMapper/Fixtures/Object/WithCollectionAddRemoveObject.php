@@ -6,7 +6,7 @@ namespace NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
-final class WithCollectionObject
+final class WithCollectionAddRemoveObject
 {
     /**
      * @var \Doctrine\Common\Collections\Collection<\NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\ItemDto>
@@ -21,6 +21,16 @@ final class WithCollectionObject
     public function getItems(): Collection
     {
         return $this->items;
+    }
+
+    public function addItem(ItemDto $itemDto): void
+    {
+        $this->items->add($itemDto);
+    }
+
+    public function removeItem(ItemDto $itemDto): void
+    {
+        $this->items->removeElement($itemDto);
     }
 
     /**

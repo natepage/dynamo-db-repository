@@ -5,6 +5,7 @@ namespace NatePage\DynamoDbRepository\AutoMapper\PropertyTransformer;
 
 use AsyncAws\DynamoDb\ValueObject\AttributeValue;
 use AutoMapper\AutoMapperInterface;
+use AutoMapper\Extractor\AddRemoveWriteMutator;
 use AutoMapper\Metadata\MapperMetadata;
 use AutoMapper\Metadata\SourcePropertyMetadata;
 use AutoMapper\Metadata\TargetPropertyMetadata;
@@ -14,6 +15,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
 use NatePage\Utils\Helper\StringHelper;
 use Symfony\Component\TypeInfo\Type\BackedEnumType;
+use Symfony\Component\TypeInfo\Type\CollectionType;
 use Symfony\Component\TypeInfo\Type\ObjectType;
 use Symfony\Component\TypeInfo\TypeIdentifier;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -102,10 +104,6 @@ final class FromAttributeValuePropertyTransformer extends AbstractAttributeValue
     ): ?string {
         $targetType = $this->resolveWrappedType($target->type);
 
-        if ($this->arrayAsJsonString && ($targetType?->isIdentifiedBy(TypeIdentifier::ARRAY) ?? false)) {
-            return self::ARRAY_AS_JSON_STRING_COMPUTED;
-        }
-
         if ($targetType instanceof BackedEnumType) {
             $mapping = $this->resolveBuiltInMapping($this->resolveWrappedType($targetType->getBackingType()));
 
@@ -119,14 +117,25 @@ final class FromAttributeValuePropertyTransformer extends AbstractAttributeValue
             return self::DATETIME_PREFIX_COMPUTED . $targetType->getClassName();
         }
 
-        if ($this->doctrineCollectionAsJsonString && $this->isDoctrineCollection($target->type)) {
-            /** @var \Symfony\Component\TypeInfo\Type\CollectionType $type */
-            $type = $target->type;
-            $collectionValueType = $type->getCollectionValueType();
+        $isTargetTypeArray = $targetType?->isIdentifiedBy(TypeIdentifier::ARRAY) ?? false;
+        $isAddRemoveMutator = $target->writeMutator instanceof AddRemoveWriteMutator;
 
-            if ($collectionValueType instanceof ObjectType) {
-                return self::DOCTRINE_COLLECTION_AS_JSON_STRING_PREFIX_COMPUTED . $collectionValueType->getClassName();
+        if ($this->doctrineCollectionAsJsonString
+            && (($isTargetTypeArray && $isAddRemoveMutator) || $this->isDoctrineCollection($target->type))) {
+            $collectionValueType = $target->type instanceof CollectionType ? $target->type->getCollectionValueType() : null;
+
+            if ($collectionValueType instanceof ObjectType === false) {
+                throw new \RuntimeException(sprintf(
+                    'The target property "%s" is a Doctrine Collection, its value type could not be resolved.',
+                    $target->property
+                ));
             }
+
+            return self::DOCTRINE_COLLECTION_AS_JSON_STRING_PREFIX_COMPUTED . $collectionValueType->getClassName();
+        }
+
+        if ($this->arrayAsJsonString && $isTargetTypeArray) {
+            return self::ARRAY_AS_JSON_STRING_COMPUTED;
         }
 
         return $this->resolveBuiltInMapping($targetType);

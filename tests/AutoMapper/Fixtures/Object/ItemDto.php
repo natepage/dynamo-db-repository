@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object;
 
-final class ItemDto implements \JsonSerializable
+final class ItemDto
 {
     public function __construct(
         private string $name,
@@ -20,12 +20,5 @@ final class ItemDto implements \JsonSerializable
         $this->name = $name;
 
         return $this;
-    }
-
-    public function jsonSerialize(): array
-    {
-        return [
-            'name' => $this->name,
-        ];
     }
 }

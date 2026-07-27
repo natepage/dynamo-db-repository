@@ -13,9 +13,13 @@ use AutoMapper\Transformer\NullableTransformer;
 use AutoMapper\Transformer\PrioritizedTransformerFactoryInterface;
 use AutoMapper\Transformer\TransformerFactoryInterface;
 use AutoMapper\Transformer\TransformerInterface;
+use Symfony\Contracts\Service\ResetInterface;
 
-final class AttributeValueTransformerFactory
-    implements TransformerFactoryInterface, PrioritizedTransformerFactoryInterface, ChainTransformerFactoryAwareInterface
+final class AttributeValueTransformerFactory implements
+    TransformerFactoryInterface,
+    PrioritizedTransformerFactoryInterface,
+    ChainTransformerFactoryAwareInterface,
+    ResetInterface
 {
     use ChainTransformerFactoryAwareTrait;
 
@@ -80,5 +84,11 @@ final class AttributeValueTransformerFactory
     public function getPriority(): int
     {
         return 1000;
+    }
+
+    public function reset(): void
+    {
+        $this->currentProperty = null;
+        $this->originalSourceClass = null;
     }
 }

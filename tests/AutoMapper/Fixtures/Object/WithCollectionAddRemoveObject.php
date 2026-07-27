@@ -18,6 +18,9 @@ final class WithCollectionAddRemoveObject
         $this->items = new ArrayCollection();
     }
 
+    /**
+     * @return \Doctrine\Common\Collections\Collection<\NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\ItemDto>
+     */
     public function getItems(): Collection
     {
         return $this->items;

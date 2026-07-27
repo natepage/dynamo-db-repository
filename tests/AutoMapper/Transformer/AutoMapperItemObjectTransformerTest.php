@@ -4,12 +4,13 @@ declare(strict_types=1);
 namespace NatePage\DynamoDbRepository\Tests\AutoMapper\Transformer;
 
 use AsyncAws\DynamoDb\ValueObject\AttributeValue;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
+use NatePage\DynamoDbRepository\AutoMapper\Mapper\AutoMapperItemObjectMapper;
 use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\ItemDto;
+use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\MyEnum;
 use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\SimpleObject;
 use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\WithCollectionAddRemoveObject;
-use NatePage\DynamoDbRepository\Tests\AutoMapper\Fixtures\Object\WithCollectionSetObject;
 use NatePage\DynamoDbRepository\Tests\Fixture\Kernel\TestKernel;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -23,31 +24,50 @@ final class AutoMapperItemObjectTransformerTest extends KernelTestCase
 {
     public function testToItem(): void
     {
-        $transformer = self::getContainer()->get(AutoMapperItemObjectTransformer::class);
+        $transformer = self::getContainer()->get(AutoMapperItemObjectMapper::class);
 
-        $item = $transformer->toItem(new SimpleObject(
-            'id',
-            'name',
-            'description',
-            ['simple', 'value']
-        ));
+        $now = new DateTimeImmutable();
+        $simpleObject = new SimpleObject(
+            id: 'my id',
+            name: 'my name',
+            description: null,
+            tags: ['simple', 'value'],
+            createdAt: $now,
+            enum: MyEnum::First,
+            count: 2,
+            price: 1.99,
+            enabled: false,
+        );
+        $simpleObject->addSubItem(new ItemDto('sub item 1'));
+
+        $item = $transformer->toItem($simpleObject);
+
+        self::assertIsArray($item);
+        self::assertCount(10, $item);
+
+        foreach ($item as $attribute) {
+            self::assertInstanceOf(AttributeValue::class, $attribute);
+        }
+
+        self::assertEquals('my id', $item['id']->getS());
+        self::assertEquals('my name', $item['name']->getS());
+        self::assertEquals('__placeholder__', $item['description']->getS());
+        self::assertEquals('["simple","value"]', $item['tags']->getS());
+        self::assertEquals($now->format('Y-m-d\TH:i:s.vuP'), $item['createdAt']->getS());
+        self::assertEquals('first', $item['enum']->getS());
+        self::assertEquals('2', $item['count']->getN());
+        self::assertEquals('1.99', $item['price']->getN());
+        self::assertEquals('[{"name":"sub item 1"}]', $item['subItems']->getS());
+        self::assertFalse($item['enabled']->getBool());
 
         $object = $transformer->toObject(SimpleObject::class, $item);
 
-        self::assertIsArray($item);
-        self::assertCount(4, $item);
-        self::assertInstanceOf(AttributeValue::class, $item['id'] ?? null);
-        self::assertEquals('id', $item['id']->getS());
-        self::assertInstanceOf(SimpleObject::class, $object);
-        self::assertEquals('id', $object->id);
-        self::assertEquals('name', $object->name);
-        self::assertEquals('description', $object->description);
-        self::assertEquals(['simple', 'value'], $object->tags);
+        self::assertEquals($simpleObject, $object);
     }
 
     public function testToItemWithCollection(): void
     {
-        $transformer = self::getContainer()->get(AutoMapperItemObjectTransformer::class);
+        $transformer = self::getContainer()->get(AutoMapperItemObjectMapper::class);
 
         $items = [
             new ItemDto('item1'),

@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
-use NatePage\DynamoDbRepository\Bundle\Enum\ConfigParam;
+use NatePage\DynamoDbRepository\AutoMapper\Mapper\AutoMapperItemObjectMapper;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $container): void {
     $container->extension('framework', ['test' => true]);
 
     $container->extension('automapper', [
+        'date_time_format' => 'Y-m-d\TH:i:s.vuP',
         'loader' => [
             'cache_dir' => '%kernel.cache_dir%/automapper',
             'reload_strategy' => 'always',
@@ -28,6 +28,6 @@ return static function (ContainerConfigurator $container): void {
         ->autowire()
         ->autoconfigure();
 
-    $services->set(AutoMapperItemObjectTransformer::class)
+    $services->set(AutoMapperItemObjectMapper::class)
         ->public();
 };

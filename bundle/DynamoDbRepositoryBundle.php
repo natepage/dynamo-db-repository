@@ -54,10 +54,7 @@ final class DynamoDbRepositoryBundle extends AbstractBundle
             $container
                 ->parameters()
                 ->set(ConfigParam::AutoMapperArrayAsJsonString->value, $config['auto_mapper']['array_as_json_string'])
-                ->set(ConfigParam::AutoMapperDatetimeClass->value, $config['auto_mapper']['datetime_class'])
-                ->set(ConfigParam::AutoMapperDatetimeFormat->value, $config['auto_mapper']['datetime_format'])
-                ->set(ConfigParam::AutoMapperDefaultStringIfNull->value, $config['auto_mapper']['default_string_if_null'])
-                ->set(ConfigParam::AutoMapperDoctrineCollectionAsJsonString->value, $config['auto_mapper']['doctrine_collection_as_json_string']);
+                ->set(ConfigParam::AutoMapperDefaultStringIfNull->value, $config['auto_mapper']['default_string_if_null']);
 
             $container->import('config/auto_mapper.php');
         }

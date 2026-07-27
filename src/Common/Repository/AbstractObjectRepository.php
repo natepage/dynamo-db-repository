@@ -15,7 +15,7 @@ use AsyncAws\DynamoDb\Result\ScanOutput;
 use AsyncAws\DynamoDb\ValueObject\AttributeValue;
 use NatePage\DynamoDbRepository\Common\Exception\RepositoryNotConfiguredException;
 use NatePage\DynamoDbRepository\Common\Naming\TableNamingStrategyInterface;
-use NatePage\DynamoDbRepository\Common\Transformer\ItemObjectTransformerInterface;
+use NatePage\DynamoDbRepository\Common\Mapper\ItemObjectMapperInterface;
 use NatePage\Utils\Helper\StringHelper;
 use Psr\Log\LoggerInterface;
 
@@ -25,7 +25,7 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
         get => $this->lastEvaluatedKey;
     }
 
-    private ?ItemObjectTransformerInterface $itemObjectTransformer = null;
+    private ?ItemObjectMapperInterface $itemObjectTransformer = null;
 
     public function __construct(
         protected DynamoDbClient $dynamoDbClient,
@@ -91,7 +91,7 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
         return $object;
     }
 
-    public function setItemObjectTransformer(ItemObjectTransformerInterface $itemObjectTransformer): void
+    public function setItemObjectTransformer(ItemObjectMapperInterface $itemObjectTransformer): void
     {
         $this->itemObjectTransformer = $itemObjectTransformer;
     }
@@ -304,7 +304,7 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
     {
         $item = $this->transformToItem($instance) ?? throw new RepositoryNotConfiguredException(\sprintf(
             'Failed to create item from object. Ensure the %s is set on the repository or override the "%s" method.',
-            ItemObjectTransformerInterface::class,
+            ItemObjectMapperInterface::class,
             'transformToItem'
         ));
 
@@ -315,7 +315,7 @@ abstract class AbstractObjectRepository implements ObjectRepositoryInterface
     {
         return $this->transformToObject($item) ?? throw new RepositoryNotConfiguredException(\sprintf(
             'Failed to create object from item. Ensure the %s is set on the repository or override the "%s" method.',
-            ItemObjectTransformerInterface::class,
+            ItemObjectMapperInterface::class,
             'transformToObject'
         ));
     }

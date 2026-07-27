@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use NatePage\DynamoDbRepository\AutoMapper\PropertyTransformer\FromAttributeValuePropertyTransformer;
-use NatePage\DynamoDbRepository\AutoMapper\PropertyTransformer\ToAttributeValuePropertyTransformer;
-use NatePage\DynamoDbRepository\AutoMapper\Transformer\AutoMapperItemObjectTransformer;
+use NatePage\DynamoDbRepository\AutoMapper\Mapper\AutoMapperItemObjectMapper;
+use NatePage\DynamoDbRepository\AutoMapper\Transformer\AttributeValueTransformerFactory;
 use NatePage\DynamoDbRepository\Bundle\Enum\ConfigParam;
 use NatePage\DynamoDbRepository\Bundle\Enum\ConfigServiceId;
 
@@ -16,16 +15,12 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->autowire()
         ->autoconfigure()
         ->bind('bool $arrayAsJsonString', param(ConfigParam::AutoMapperArrayAsJsonString->value))
-        ->bind('string $dateTimeClass', param(ConfigParam::AutoMapperDatetimeClass->value))
-        ->bind('string $dateTimeFormat', param(ConfigParam::AutoMapperDatetimeFormat->value))
-        ->bind('string $defaultStringIfNull', param(ConfigParam::AutoMapperDefaultStringIfNull->value))
-        ->bind('bool $doctrineCollectionAsJsonString', param(ConfigParam::AutoMapperDoctrineCollectionAsJsonString->value));
+        ->bind('string $defaultStringIfNull', param(ConfigParam::AutoMapperDefaultStringIfNull->value));
 
-    // Property transformers
     $services
-        ->set(FromAttributeValuePropertyTransformer::class)
-        ->set(ToAttributeValuePropertyTransformer::class);
+        ->set(AttributeValueTransformerFactory::class)
+        ->tag('automapper.transformer_factory', ['priority' => 2003]);
 
     // ItemObject transformer
-    $services->set(ConfigServiceId::ItemObjectTransformer->value, AutoMapperItemObjectTransformer::class);
+    $services->set(ConfigServiceId::ItemObjectTransformer->value, AutoMapperItemObjectMapper::class);
 };

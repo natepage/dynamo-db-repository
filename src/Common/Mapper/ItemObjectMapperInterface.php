@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace NatePage\DynamoDbRepository\Common\Transformer;
+namespace NatePage\DynamoDbRepository\Common\Mapper;
 
 use AsyncAws\DynamoDb\ValueObject\AttributeValue;
 
-interface ItemObjectTransformerInterface
+interface ItemObjectMapperInterface
 {
     /**
      * @return AttributeValue[]

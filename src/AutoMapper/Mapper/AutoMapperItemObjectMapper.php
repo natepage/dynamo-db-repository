@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace NatePage\DynamoDbRepository\AutoMapper\Transformer;
+namespace NatePage\DynamoDbRepository\AutoMapper\Mapper;
 
 use AutoMapper\AutoMapperInterface;
-use NatePage\DynamoDbRepository\Common\Transformer\ItemObjectTransformerInterface;
+use NatePage\DynamoDbRepository\Common\Mapper\ItemObjectMapperInterface;
 
-final readonly class AutoMapperItemObjectTransformer implements ItemObjectTransformerInterface
+final readonly class AutoMapperItemObjectMapper implements ItemObjectMapperInterface
 {
     public const string CONTEXT_KEY = 'natepage_dynamodb_repository';
 

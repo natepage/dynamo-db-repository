@@ -30,6 +30,16 @@ final class ManagerRegistry implements ManagerRegistryInterface, ResetInterface
     ) {
     }
 
+    public function getConnectionNames(): array
+    {
+        return \array_keys($this->getManagerNames());
+    }
+
+    public function getDefaultConnectionName(): string
+    {
+        return $this->getConnectionNames()[0] ?? 'default';
+    }
+
     public function getDefaultManagerName(): string
     {
         return $this->defaultManagerName ?? 'default';

@@ -4,15 +4,9 @@ declare(strict_types=1);
 namespace NatePage\DynamoDbRepository\Doctrine\Registry;
 
 use Doctrine\Persistence\ObjectManager;
-use Doctrine\Persistence\ObjectRepository;
 
 trait ManagerRegistryNotImplementedMethodsTrait
 {
-    public function getDefaultConnectionName(): string
-    {
-        // TODO: Implement getDefaultConnectionName() method.
-    }
-
     public function getConnection(?string $name = null): object
     {
         // TODO: Implement getConnection() method.
@@ -21,11 +15,6 @@ trait ManagerRegistryNotImplementedMethodsTrait
     public function getConnections(): array
     {
         // TODO: Implement getConnections() method.
-    }
-
-    public function getConnectionNames(): array
-    {
-        // TODO: Implement getConnectionNames() method.
     }
 
     public function resetManager(?string $name = null): ObjectManager

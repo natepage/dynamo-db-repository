@@ -7,6 +7,7 @@ use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository as BaseEntityRepository;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\PropertyAccessors\PropertyAccessor;
 use NatePage\DynamoDbRepository\Common\Repository\ObjectRepositoryInterface;
 
 final class EntityRepository extends BaseEntityRepository
@@ -28,13 +29,24 @@ final class EntityRepository extends BaseEntityRepository
         $entity = $this->repository->find($id);
 
         if ($entity != null) {
-            $id = [$this->class->identifier[0] => $id];
+            // Support repositories using an abstract entity class as their main object class,
+            // we must resolve the class metadata for the concrete class to ensure it has all the propertyAccessors
+            $classMetadata = $this->class;
+            if ($classMetadata->rootEntityName !== $entity::class) {
+                $concreteClasses = $this->repository::getObjectConcreteClasses();
+
+                if (\is_array($concreteClasses) && \in_array($entity::class, $concreteClasses, true)) {
+                    $classMetadata = $this->entityManager->getClassMetadata($entity::class);
+                }
+            }
+
+            $id = [$classMetadata->identifier[0] => $id];
 
             // Very basic support of entity data, no support for associations
-            $data = [];
-            foreach ($this->class->propertyAccessors as $field => $accessor) {
-                $data[$field] = $accessor->getValue($entity);
-            }
+            $data = \array_map(
+                static fn (PropertyAccessor $accessor): mixed => $accessor->getValue($entity),
+                $classMetadata->propertyAccessors
+            );
 
             $this->entityManager->getUnitOfWork()->registerManaged($entity, $id, $data);
         }

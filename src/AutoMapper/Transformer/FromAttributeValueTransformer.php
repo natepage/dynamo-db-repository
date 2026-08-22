@@ -5,8 +5,11 @@ namespace NatePage\DynamoDbRepository\AutoMapper\Transformer;
 
 use AsyncAws\DynamoDb\ValueObject\AttributeValue;
 use AutoMapper\Generator\UniqueVariableScope;
+use AutoMapper\MapperContext;
 use AutoMapper\Metadata\PropertyMetadata;
 use AutoMapper\Transformer\AbstractArrayTransformer;
+use AutoMapper\Transformer\StringToDateTimeTransformer;
+use Carbon\CarbonImmutable;
 use NatePage\Utils\Helper\StringHelper;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
@@ -114,6 +117,34 @@ final class FromAttributeValueTransformer extends AbstractAttributeValueTransfor
                 $this->stmtIfTrue(new Expr\Instanceof_($input, new Name(AttributeValue::class)), $stmts),
             ])
         );
+
+        // This is a fallback for DateTimes in case the format in the config was updated after records
+        // were persisted already, very useful, learned the hard way...
+        if (\method_exists($this->valueTransformer, '__toString')
+            && \str_contains((string)$this->valueTransformer, StringToDateTimeTransformer::class)) {
+            $transformStatements[] = new Stmt\If_(
+                new Expr\BinaryOp\BooleanAnd(
+                    new Expr\BinaryOp\Identical($output, new Expr\ConstFetch(new Name('false'))),
+                    new Expr\FuncCall(new Name('\class_exists'), [
+                        new Arg(new Expr\ClassConstFetch(new Name\FullyQualified('\Carbon\CarbonImmutable'), 'class')),
+                    ]),
+                ),
+                [
+                    'stmts' => [
+                        new Stmt\Expression(new Expr\Assign(
+                            $output,
+                            new Expr\StaticCall(new Name\FullyQualified('\Carbon\CarbonImmutable'), 'parse', [
+                                new Arg($input),
+                                new Arg(
+                                    new Expr\StaticCall(new Name(MapperContext::class), 'getForcedTimezone',
+                                        [new Arg(new Expr\Variable('context'))])
+                                ),
+                            ])
+                        )),
+                    ],
+                ]
+            );
+        }
 
         return [$output, $transformStatements];
     }

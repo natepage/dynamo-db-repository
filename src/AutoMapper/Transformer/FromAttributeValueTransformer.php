@@ -126,14 +126,14 @@ final class FromAttributeValueTransformer extends AbstractAttributeValueTransfor
                 new Expr\BinaryOp\BooleanAnd(
                     new Expr\BinaryOp\Identical($output, new Expr\ConstFetch(new Name('false'))),
                     new Expr\FuncCall(new Name('\class_exists'), [
-                        new Arg(new Expr\ClassConstFetch(new Name\FullyQualified('\Carbon\CarbonImmutable'), 'class')),
+                        new Arg(new Expr\ClassConstFetch(new Name\FullyQualified('Carbon\CarbonImmutable'), 'class')),
                     ]),
                 ),
                 [
                     'stmts' => [
                         new Stmt\Expression(new Expr\Assign(
                             $output,
-                            new Expr\StaticCall(new Name\FullyQualified('\Carbon\CarbonImmutable'), 'parse', [
+                            new Expr\StaticCall(new Name\FullyQualified('Carbon\CarbonImmutable'), 'parse', [
                                 new Arg($input),
                                 new Arg(
                                     new Expr\StaticCall(new Name(MapperContext::class), 'getForcedTimezone',
